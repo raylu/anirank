@@ -3,13 +3,14 @@ import hashlib
 import os
 
 import sqlalchemy
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.dialects import postgresql
 import sqlalchemy.ext.declarative
 
 import config
 
-import postgresql.clientparameters
-postgresql.clientparameters.default_host = None
+import postgresql.clientparameters as psqlcp
+psqlcp.default_host = None
 engine = sqlalchemy.create_engine(sqlalchemy.engine.url.URL(
 	drivername='postgresql+pypostgresql',
 	username=config.db_user,
@@ -58,6 +59,28 @@ class User(Base):
 
 	def __repr__(self):
 		return '<User(id=%r, username=%r)>' % (self.id, self.username)
+
+class Anime(Base):
+	__tablename__ = 'anime'
+	id = Column(Integer, primary_key=True, autoincrement=False)
+	title = Column(String(128), nullable=False)
+	synonyms = Column(postgresql.ARRAY(String(128)), nullable=True)
+	type = Column(Enum('TV', 'movie', 'OVA', 'ONA', 'special', 'music', name='anime_type'), nullable=False)
+	status = Column(Enum('finished', 'airing', 'not yet aired', name='anime_status'), nullable=False)
+	start = Column(Date, nullable=True)
+	end = Column(Date, nullable=True)
+	episodes = Column(Integer, nullable=True)
+	image = Column(String(64), nullable=False)
+
+class Animelist(Base):
+	__tablename__ = 'animelist'
+	user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+	anime_id = Column(Integer, ForeignKey('anime.id'), primary_key=True)
+	status = Column(Enum('watching', 'completed', 'on hold', 'dropped', 'plan to watch',
+			name='animelist_status'), nullable=False)
+	episodes = Column(Integer, nullable=False)
+	mal_score = Column(Integer, nullable=False)
+	last_updated = Column(DateTime, nullable=False)
 
 def init_db():
 	Base.metadata.create_all(bind=engine)

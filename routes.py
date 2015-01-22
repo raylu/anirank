@@ -4,6 +4,7 @@ import flask
 from flask import request, session
 
 import db
+import mal
 
 app = flask.Blueprint(__name__, __name__)
 
@@ -54,4 +55,27 @@ def register():
 		user = db.User.register(username, password, email)
 		session.permanent = True
 		session['user_id'] = user.id
+		return flask.redirect('/')
+
+@app.route('/import', methods=['GET', 'POST'])
+def import_mal():
+	if 'user_id' not in session:
+		return flask.redirect('/login')
+	if request.method == 'GET':
+		return flask.render_template('import.html')
+	else:
+		username = request.form.get('username')
+		if not username:
+			flask.flash('You must provide a MAL username.')
+			return flask.redirect('/import')
+
+		list_entries = []
+		for anime, user_status in mal.animelist(username):
+			db.session.merge(db.Anime(**anime))
+			list_entry = db.Animelist(user_id=session['user_id'], anime_id=anime['id'], **user_status)
+			list_entries.append(list_entry)
+		db.session.commit()
+		for list_entry in list_entries:
+			db.session.merge(list_entry)
+		db.session.commit()
 		return flask.redirect('/')
