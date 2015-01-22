@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>anirank</title>
+	<link rel="stylesheet" type="text/css" href="/css/base.css" />
+	<script src="//ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools.js"></script>
+	{% block js %}{% endblock %}
+	{% block css %}{% endblock %}
+</head>
+<body>
+	<div class="wrapper">
+		<div class="topbar">
+			<div class="title">
+				<a href="/">anirank</a>
+			</div>
+			<div class="nav">
+				{% if session['user_id'] %}
+					<a href="/logout">logout</a>
+				{% else %}
+					<a href="/login">login</a>
+					<a href="/register">register</a>
+				{% endif %}
+			</div>
+		</div>
+
+		{% with messages = get_flashed_messages() %}
+			{% for message in messages %}
+				<div class="message">{{ message }}</div>
+			{% endfor %}
+		{% endwith %}
+
+		{% block main %}{% endblock %}
+	</div>
+</body>
+</html>

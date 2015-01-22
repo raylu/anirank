@@ -1,0 +1,9 @@
+web_host = '127.0.0.1'
+web_port = 9000
+secret_key = 'dis iz supar sekrit'
+debug = True
+
+database = 'anirank'
+db_user = 'anirank'
+
+# vim: set ft=python:

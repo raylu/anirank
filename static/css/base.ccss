@@ -1,0 +1,50 @@
+*:
+	box-sizing: border-box
+	padding: 0
+	margin: 0
+
+body:
+	height: 100%
+	background-color: #111
+	color: #ccc
+	font-family: sans-serif
+
+a:
+	color: #3ae
+	text-decoration: none
+
+p:
+	margin-top: 1em
+
+input, button, select:
+	border: 1px solid #777;
+	padding: 3px 4px;
+input, button:
+	background-color: #222
+	color: inherit
+
+.wrapper:
+	width: 1200px
+	margin: 0 auto 50px
+
+.topbar:
+	margin: 15px 0
+
+	.title:
+		display: inline-block
+	.nav:
+		display: inline-block
+		float: right
+
+		& > a:
+			display: inline-block
+			margin: 0 10px
+
+.message:
+	width: 75%
+	margin: 0 auto
+	padding: 12px 15px
+	background-color: #422
+
+.clear:
+	clear: both

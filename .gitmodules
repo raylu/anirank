@@ -1,0 +1,6 @@
+[submodule "cleancss.git"]
+	path = cleancss.git
+	url = git://github.com/raylu/py-cleancss.git
+[submodule "eventlet.git"]
+	path = eventlet.git
+	url = git://github.com/eventlet/eventlet.git
