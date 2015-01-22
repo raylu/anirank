@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block main %}
+	{% for status in statuses %}
+		<h2>{{ status }}</h2>
+		{% for entry in animelist[status] %}
+			<div>{{ entry.anime.title }}</div>
+		{% endfor %}
+	{% endfor %}
+{% endblock %}

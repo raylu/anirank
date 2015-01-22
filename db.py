@@ -5,6 +5,7 @@ import os
 import sqlalchemy
 from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.orm import backref, relationship
 import sqlalchemy.ext.declarative
 
 import config
@@ -81,6 +82,8 @@ class Animelist(Base):
 	episodes = Column(Integer, nullable=False)
 	mal_score = Column(Integer, nullable=False)
 	last_updated = Column(DateTime, nullable=False)
+
+	anime = relationship('Anime')
 
 def init_db():
 	Base.metadata.create_all(bind=engine)

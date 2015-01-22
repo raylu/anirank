@@ -2,6 +2,8 @@ import string
 
 import flask
 from flask import request, session
+from sqlalchemy import desc
+from sqlalchemy.orm import joinedload
 
 import db
 import mal
@@ -20,6 +22,7 @@ def login():
 		user = db.User.login(request.form['username'], request.form['password'])
 		if user:
 			session['user_id'] = user.id
+			session['username'] = user.username
 			return flask.redirect('/')
 		else:
 			flask.flash('Invalid username/password combination.')
@@ -29,6 +32,7 @@ def login():
 def logout():
 	try:
 		del session['user_id']
+		del session['username']
 	except KeyError:
 		pass
 	return flask.redirect('/')
@@ -55,7 +59,22 @@ def register():
 		user = db.User.register(username, password, email)
 		session.permanent = True
 		session['user_id'] = user.id
+		session['username'] = username
 		return flask.redirect('/')
+
+@app.route('/animelist/<username>')
+def animelist(username):
+	user = db.session.query(db.User).filter(db.User.username==username).one()
+	anime = db.session.query(db.Animelist).options(joinedload(db.Animelist.anime)) \
+			.filter(db.Animelist.user_id==user.id).order_by(desc(db.Animelist.last_updated))
+
+	statuses = db.Animelist.status.property.columns[0].type.enums
+	entries = {}
+	for status in statuses:
+		entries[status] = []
+	for entry in anime:
+		entries[entry.status].append(entry)
+	return flask.render_template('animelist.html', animelist=entries, statuses=statuses)
 
 @app.route('/import', methods=['GET', 'POST'])
 def import_mal():
