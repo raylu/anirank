@@ -80,7 +80,7 @@ class Animelist(Base):
 	status = Column(Enum('watching', 'completed', 'on hold', 'dropped', 'plan to watch',
 			name='animelist_status'), nullable=False)
 	episodes = Column(Integer, nullable=False)
-	mal_score = Column(Integer, nullable=False)
+	mal_score = Column(Integer, nullable=True)
 	last_updated = Column(DateTime, nullable=False)
 
 	anime = relationship('Anime')

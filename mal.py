@@ -39,7 +39,7 @@ def parse_entry(entry):
 	user_status = {
 		'status': animelist_status[entry['my_status']],
 		'episodes': int(entry['my_watched_episodes']),
-		'mal_score': int(entry['my_score']),
+		'mal_score': int(entry['my_score']) or None,
 		'last_updated': datetime.datetime.utcfromtimestamp(int(entry['my_last_updated'])),
 	}
 	return anime, user_status

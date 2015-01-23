@@ -22,7 +22,7 @@
 					</div>
 					<div>{{ entry.anime.type }}</div>
 					<div>{{ entry.episodes }}/{{ entry.anime.episodes }}</div>
-					<div>{{ entry.mal_score }}</div>
+					<div>{{ entry.mal_score or '' }}</div>
 					<div>{{ entry.last_updated }}</div>
 				</div>
 			{% endfor %}
