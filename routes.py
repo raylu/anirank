@@ -89,12 +89,23 @@ def import_mal():
 			return flask.redirect('/import')
 
 		list_entries = []
-		for anime, user_status in mal.animelist(username):
-			db.session.merge(db.Anime(**anime))
-			list_entry = db.Animelist(user_id=session['user_id'], anime_id=anime['id'], **user_status)
+		# preload the Anime so merging doesn't result in a SELECT for every row
+		preload = db.session.query(db.Anime).join(db.Animelist) \
+				.filter(db.Animelist.user_id==session['user_id']).all()
+		for anime_args, user_status in mal.animelist(username):
+			anime = db.Anime(**anime_args)
+			if len(preload):
+				db.session.merge(anime)
+			else:
+				db.session.add(anime)
+			list_entry = db.Animelist(user_id=session['user_id'], anime_id=anime_args['id'], **user_status)
 			list_entries.append(list_entry)
 		db.session.commit()
-		for list_entry in list_entries:
-			db.session.merge(list_entry)
+		preload = db.session.query(db.Animelist).filter(db.Animelist.user_id==session['user_id']).all()
+		if len(preload):
+			for list_entry in list_entries:
+				db.session.merge(list_entry)
+		else:
+			db.session.add_all(list_entries)
 		db.session.commit()
-		return flask.redirect('/')
+		return flask.redirect('/animelist/' + session['username'])
