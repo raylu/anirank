@@ -1,10 +1,31 @@
 {% extends "base.html" %}
 
+{% block css %}
+	<link rel="stylesheet" type="text/css" href="/css/animelist.css" />
+{% endblock %}
+
+{% block js %}
+	<script src="/static/js/animelist.js"></script>
+{% endblock %}
+
 {% block main %}
 	{% for status in statuses %}
-		<h2>{{ status }}</h2>
-		{% for entry in animelist[status] %}
-			<div>{{ entry.anime.title }}</div>
-		{% endfor %}
+		<h2><a href="">{{ status }}</a></h2>
+		<div class="animelist" id="{{ status }}">
+			{% for entry in animelist[status] %}
+				<div class="entry">
+					<div>
+						<a href="http://myanimelist.net/anime/{{ entry.anime_id }}">{{ entry.anime.title }}</a>
+						{% if entry.anime.status != 'finished' %}
+							({{ entry.anime.status }})
+						{% endif %}
+					</div>
+					<div>{{ entry.anime.type }}</div>
+					<div>{{ entry.episodes }}/{{ entry.anime.episodes }}</div>
+					<div>{{ entry.mal_score }}</div>
+					<div>{{ entry.last_updated }}</div>
+				</div>
+			{% endfor %}
+		</div>
 	{% endfor %}
 {% endblock %}
