@@ -65,14 +65,12 @@ def register():
 @app.route('/animelist/<username>')
 def animelist(username):
 	user = db.session.query(db.User).filter(db.User.username==username).one()
-	anime = db.session.query(db.Animelist).options(joinedload(db.Animelist.anime)) \
-			.filter(db.Animelist.user_id==user.id).order_by(desc(db.Animelist.last_updated))
 
 	statuses = db.Animelist.status.property.columns[0].type.enums
 	entries = {}
 	for status in statuses:
 		entries[status] = []
-	for entry in anime:
+	for entry in user.animelist():
 		entries[entry.status].append(entry)
 	return flask.render_template('animelist.html', animelist=entries, statuses=statuses)
 

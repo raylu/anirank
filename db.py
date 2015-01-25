@@ -3,9 +3,9 @@ import hashlib
 import os
 
 import sqlalchemy
-from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, String, desc
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship, joinedload
 import sqlalchemy.ext.declarative
 
 import config
@@ -31,6 +31,10 @@ class User(Base):
 	salt = Column(sqlalchemy.types.CHAR(32), nullable=False)
 	email = Column(String(64), nullable=False, unique=True)
 	flags = Column(Integer, nullable=False, default=0)
+
+	def animelist(self):
+		return session.query(Animelist).options(joinedload(Animelist.anime)) \
+				.filter(Animelist.user_id==self.id).order_by(desc(Animelist.last_updated))
 
 	@staticmethod
 	def hash_pw(password, salt=None):
