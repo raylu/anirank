@@ -5,25 +5,25 @@ h2:
 
 .animelist:
 	.entry:
+		display: flex
+
 		&:nth-child(even):
 			background-color: #222
 
 		div:
-			display: inline-block
-			overflow: hidden
+			flex: 1
+			rverflow: hidden
 			white-space: nowrap
 			text-overflow: ellipsis
-			padding: 3px 0 0
+			padding: 3px 0 3px 5px
 
-		div:nth-of-type(1): // title
-			width: 782px
-			clear: left
-		div:nth-of-type(2): // type
-			width: 100px
-		div:nth-of-type(3): // episodes
-			width: 100px
-		div:nth-of-type(4): // mal_score
-			width: 50px
-		div:nth-of-type(5): // last_updated
-			width: 150px
-			clear: right
+			&.center:
+				text-align: center
+
+			&:first-child:
+				flex: 8
+
+			&:last-child:
+				flex: 2
+				text-align: right
+				padding-right: 5px

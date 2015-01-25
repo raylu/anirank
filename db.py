@@ -86,6 +86,8 @@ class Animelist(Base):
 	episodes = Column(Integer, nullable=False)
 	mal_score = Column(Integer, nullable=True)
 	last_updated = Column(DateTime, nullable=False)
+	score = Column(Integer, nullable=True)
+	seriousness = Column(Integer, nullable=True)
 
 	anime = relationship('Anime')
 

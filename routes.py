@@ -2,8 +2,6 @@ import string
 
 import flask
 from flask import request, session
-from sqlalchemy import desc
-from sqlalchemy.orm import joinedload
 
 import db
 import mal
