@@ -38,45 +38,45 @@ class User(Base):
 				.filter(Animelist.user_id==self.id).order_by(desc(Animelist.last_updated))
 
 	def shared_anime(self, other_user):
-		anime = session.query(Animelist).filter(
-			Animelist.score != None,
-			Animelist.seriousness != None,
-			(Animelist.user_id==self.id) | (Animelist.user_id==other_user.id))
-		t1, t2 = tee(anime)
-		pred = lambda x: x.user_id == self.id
-		l1 = list(filter(pred, t2))
-		l2 = list(filterfalse(pred, t1))
-		l1_ids = map(lambda x: x.anime_id, l1)
-		l2_ids = map(lambda x: x.anime_id, l2)
-		shared_anime_ids = [i for i in l1_ids if i in l2_ids]
-		list1 = [a for a in l1 if a.anime_id in shared_anime_ids]
-		list2 = [a for a in l2 if a.anime_id in shared_anime_ids]
+		entries = session.query(Animelist).filter(
+			Animelist.score != None, Animelist.seriousness != None,
+			Animelist.user_id.in_([self.id, other_user.id]))
+		entry_map = [{}, {}]
+		for entry in entries:
+			if entry.user_id == self.id:
+				entry_map[0][entry.anime_id] = entry
+			else:
+				entry_map[1][entry.anime_id] = entry
+		shared_anime_ids = set(entry_map[0]).intersection(entry_map[1].keys())
+
+		list1 = []
+		list2 = []
+		for anime_id in shared_anime_ids:
+			list1.append(entry_map[0][anime_id])
+			list2.append(entry_map[1][anime_id])
 		return list1, list2
 
 	def get_vectors(self, animelist):
-		vectors = {}
 		for i, anime in enumerate(animelist):
 			for other_anime in animelist[i:]:
-				vector = Animelist.get_vector(anime, other_anime)
-				vectors[(anime.anime_id, other_anime.anime_id)] = vector
-		return vectors
+				yield Animelist.get_vector(anime, other_anime)
 
 	def compare_vectors(self, other_user):
 		l1, l2 = self.shared_anime(other_user)
 		if not (l1 and l2):
 			return
-		vectors1 = self.get_vectors(l1)
-		vectors2 = other_user.get_vectors(l2)
-		vector_diffs = []
-		for key, value in vectors1.items():
-			value2 = vectors2[key]
-			diff = Animelist.vectors_diff(value, value2)
-			vector_diffs.append(diff)
-		scores = [v[0] for v in vector_diffs]
-		seriousnesses = [v[1] for v in vector_diffs]
-		avg_score = sum(scores) / len(scores)
-		avg_seriousness = sum(seriousnesses) / len(seriousnesses)
-		return avg_score, avg_seriousness
+
+		user1_score = user1_seriousness = user2_score = user2_seriousness = 0
+		for score, seriousness in self.get_vectors(l1):
+			user1_score += score
+			user1_seriousness += seriousness
+		for score, seriousness in other_user.get_vectors(l2):
+			user2_score += score
+			user2_seriousness += seriousness
+
+		score_diff = (user2_score - user1_score) / len(l1)
+		seriousness_diff = (user2_seriousness - user1_seriousness) / len(l1)
+		return score_diff, seriousness_diff
 
 	@staticmethod
 	def hash_pw(password, salt=None):
@@ -135,13 +135,12 @@ class Animelist(Base):
 
 	@staticmethod
 	def get_vector(a, b):
-		new_score = b.score - a.score
-		new_seriousness = b.seriousness - a.seriousness
-		return new_score, new_seriousness
+		score_diff = b.score - a.score
+		seriousness_diff = b.seriousness - a.seriousness
+		return score_diff, seriousness_diff
 
-	@staticmethod
-	def vectors_diff(u, v):
-		return u[0] - v[0], u[1] - v[1]
+	def __repr__(self):
+		return '<Animelist(user_id=%r, anime_id=%r)>' % (self.user_id, self.anime_id)
 
 def init_db():
 	Base.metadata.create_all(bind=engine)
