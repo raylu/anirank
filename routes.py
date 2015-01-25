@@ -90,10 +90,7 @@ def import_mal():
 				.filter(db.Animelist.user_id==session['user_id']).all()
 		for anime_args, user_status in mal.animelist(username):
 			anime = db.Anime(**anime_args)
-			if len(preload):
-				db.session.merge(anime)
-			else:
-				db.session.add(anime)
+			db.session.merge(anime)
 			list_entry = db.Animelist(user_id=session['user_id'], anime_id=anime_args['id'], **user_status)
 			list_entries.append(list_entry)
 		db.session.commit()

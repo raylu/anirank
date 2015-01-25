@@ -1,6 +1,7 @@
 import binascii
 import hashlib
 import os
+from itertools import filterfalse, tee
 
 import sqlalchemy
 from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, String, desc
@@ -35,6 +36,47 @@ class User(Base):
 	def animelist(self):
 		return session.query(Animelist).options(joinedload(Animelist.anime)) \
 				.filter(Animelist.user_id==self.id).order_by(desc(Animelist.last_updated))
+
+	def shared_anime(self, other_user):
+		anime = session.query(Animelist).filter(
+			Animelist.score != None,
+			Animelist.seriousness != None,
+			(Animelist.user_id==self.id) | (Animelist.user_id==other_user.id))
+		t1, t2 = tee(anime)
+		pred = lambda x: x.user_id == self.id
+		l1 = list(filter(pred, t2))
+		l2 = list(filterfalse(pred, t1))
+		l1_ids = map(lambda x: x.anime_id, l1)
+		l2_ids = map(lambda x: x.anime_id, l2)
+		shared_anime_ids = [i for i in l1_ids if i in l2_ids]
+		list1 = [a for a in l1 if a.anime_id in shared_anime_ids]
+		list2 = [a for a in l2 if a.anime_id in shared_anime_ids]
+		return list1, list2
+
+	def get_vectors(self, animelist):
+		vectors = {}
+		for i, anime in enumerate(animelist):
+			for other_anime in animelist[i:]:
+				vector = Animelist.get_vector(anime, other_anime)
+				vectors[(anime.anime_id, other_anime.anime_id)] = vector
+		return vectors
+
+	def compare_vectors(self, other_user):
+		l1, l2 = self.shared_anime(other_user)
+		if not (l1 and l2):
+			return
+		vectors1 = self.get_vectors(l1)
+		vectors2 = other_user.get_vectors(l2)
+		vector_diffs = []
+		for key, value in vectors1.items():
+			value2 = vectors2[key]
+			diff = Animelist.vectors_diff(value, value2)
+			vector_diffs.append(diff)
+		scores = [v[0] for v in vector_diffs]
+		seriousnesses = [v[1] for v in vector_diffs]
+		avg_score = sum(scores) / len(scores)
+		avg_seriousness = sum(seriousnesses) / len(seriousnesses)
+		return avg_score, avg_seriousness
 
 	@staticmethod
 	def hash_pw(password, salt=None):
@@ -90,6 +132,16 @@ class Animelist(Base):
 	seriousness = Column(Integer, nullable=True)
 
 	anime = relationship('Anime')
+
+	@staticmethod
+	def get_vector(a, b):
+		new_score = b.score - a.score
+		new_seriousness = b.seriousness - a.seriousness
+		return new_score, new_seriousness
+
+	@staticmethod
+	def vectors_diff(u, v):
+		return u[0] - v[0], u[1] - v[1]
 
 def init_db():
 	Base.metadata.create_all(bind=engine)
