@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block css %}
+	<link rel="stylesheet" type="text/css" href="/css/animelist.css" />
+{% endblock %}
+
+{% block js %}
+	<script src="/static/js/animelist.js"></script>
+{% endblock %}
+
+{% macro listentry(entry) -%}
+	<div class="center">{{ entry.status }}</div>
+	<div class="center">{{ entry.mal_score or '' }}</div>
+	<div class="center">{{ entry.score or '' }}</div>
+	<div class="center">{{ entry.seriousness or '' }}</div>
+	<div>{{ entry.last_updated }}</div>
+{%- endmacro %}
+
+{% macro animelist(name, entries, entries2=None) -%}
+	<h2><a href="">{{ name }}</a></h2>
+	<div class="animelist" id="{{ name }}">
+		{% for entry in entries %}
+			<div class="entry">
+				<div>
+					<a href="http://myanimelist.net/anime/{{ entry.anime_id }}">{{ entry.anime.title }}</a>
+					{% if entry.anime.status != 'finished' %}
+						({{ entry.anime.status }})
+					{% endif %}
+				</div>
+				{{ listentry(entry) }}
+				{% if entries2 %}{{ listentry(entries2[loop.index0]) }}{% endif %}
+			</div>
+		{% endfor %}
+	</div>
+{%- endmacro %}
+
+{% block main %}
+	<h2>
+		comparing <a href="/animelist/{{ u1 }}">{{ u1 }}</a>
+		and <a href="/animelist/{{ u2 }}">{{ u2 }}</a>
+	</h2>
+	<p>
+		score difference: {{ average_vector[0] }}<br>
+		seriousness difference: {{ average_vector[1] }}
+	</p>
+	{{ animelist('shared', shared[0], shared[1]) }}
+	{{ animelist('unique to ' + u1, unique[0]) }}
+	{{ animelist('unique to ' + u2, unique[1]) }}
+{% endblock %}

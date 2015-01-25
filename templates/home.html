@@ -1,5 +1,15 @@
 {% extends "base.html" %}
 
 {% block main %}
-	<a href="/import">import</a>
+	<p><a href="/import">import</a></p>
+	<form method="get" action="/compare"><p>
+		compare:
+		<br><label>username 1:
+			<input type="text" name="u1" value="{{ session.get('username') }}">
+		</label>
+		<br><label>username 2:
+			<input type="text" name="u2">
+		</label>
+		<br><input type="submit" value="go">
+	</p></form>
 {% endblock %}

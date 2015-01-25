@@ -102,3 +102,13 @@ def import_mal():
 			db.session.add_all(list_entries)
 		db.session.commit()
 		return flask.redirect('/animelist/' + session['username'])
+
+@app.route('/compare')
+def compare():
+	u1 = request.args['u1']
+	u2 = request.args['u2']
+	users = db.session.query(db.User).filter(db.User.username.in_([u1, u2])).all()
+	unique, shared = db.Animelist.diff(users[0].id, users[1].id)
+	average_vector = db.Animelist.compare_vectors(*shared)
+	return flask.render_template('compare.html', u1=u1, u2=u2,
+			average_vector=average_vector, unique=unique, shared=shared)
