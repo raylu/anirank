@@ -5,7 +5,7 @@ from xml.etree import ElementTree
 def animelist(username):
 	conn = http.client.HTTPConnection('myanimelist.net')
 	headers = {'User-Agent': 'api-taiga-32864c09ef538453b4d8110734ee355b'}
-	conn.request('GET', '/malappinfo.php?u=raylu&status=all&type=anime', headers=headers)
+	conn.request('GET', '/malappinfo.php?u=%s&status=all&type=anime' % username, headers=headers)
 	response = conn.getresponse()
 	if response.status != http.client.OK:
 		raise http.client.HTTPException()
