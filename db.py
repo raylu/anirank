@@ -1,4 +1,5 @@
 import binascii
+from collections import defaultdict
 import hashlib
 import os
 from itertools import filterfalse, tee
@@ -94,15 +95,17 @@ class Animelist(Base):
 
 	@staticmethod
 	def diff(user_id1, user_id2):
-		entries = session.query(Animelist).filter(
-			Animelist.score != None, Animelist.seriousness != None,
+		entries = session.query(Animelist).options(joinedload(Animelist.anime)).filter(
 			Animelist.user_id.in_([user_id1, user_id2]))
 		entry_maps = [{}, {}]
+		ratings = defaultdict(int)
 		for entry in entries:
 			if entry.user_id == user_id1:
 				entry_maps[0][entry.anime_id] = entry
 			else:
 				entry_maps[1][entry.anime_id] = entry
+			if entry.score is not None and entry.seriousness is not None:
+				ratings[entry.anime_id] += 1
 		shared_anime_ids = set(entry_maps[0]).intersection(entry_maps[1].keys())
 
 		unique = [[], []]
@@ -113,7 +116,12 @@ class Animelist(Base):
 					shared[i].append(entry)
 				else:
 					unique[i].append(entry)
-		return unique, shared
+		rated = [[], []]
+		for anime_id in shared_anime_ids:
+			if ratings[anime_id] == 2:
+				for i in range(2):
+					rated[i].append(entry_maps[i][anime_id])
+		return unique, shared, rated
 
 	@staticmethod
 	def get_vector(a, b):
@@ -140,7 +148,6 @@ class Animelist(Base):
 		score_diff = abs(user2_score - user1_score) / len(entries1)
 		seriousness_diff = abs(user2_seriousness - user1_seriousness) / len(entries1)
 		return score_diff, seriousness_diff
-
 
 	def __repr__(self):
 		return '<Animelist(user_id=%r, anime_id=%r)>' % (self.user_id, self.anime_id)

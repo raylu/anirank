@@ -108,7 +108,11 @@ def compare():
 	u1 = request.args['u1']
 	u2 = request.args['u2']
 	users = db.session.query(db.User).filter(db.User.username.in_([u1, u2])).all()
-	unique, shared = db.Animelist.diff(users[0].id, users[1].id)
-	average_vector = db.Animelist.compare_vectors(*shared)
+	if users[0].username == u1:
+		user_id1, user_id2 = users[0].id, users[1].id
+	else:
+		user_id1, user_id2 = users[1].id, users[0].id
+	unique, shared, rated = db.Animelist.diff(user_id1, user_id2)
+	average_vector = db.Animelist.compare_vectors(*rated)
 	return flask.render_template('compare.html', u1=u1, u2=u2,
 			average_vector=average_vector, unique=unique, shared=shared)
